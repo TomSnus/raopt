@@ -203,7 +203,7 @@ class TestAllSteps(unittest.TestCase):
         self._check("\project_{name}(\select_{gender='f' and age=16} Person);",
                     "\project_{name}(\select_{gender = 'f' and age = 16} Person);")
 
-    def test_project_select_person(self):
+    def test_project_select_person1(self):
         self._check("\select_{Person.name = Eats.name and Person.name = Eats.pizza} (Person \cross Eats);",
                     "Person \join_{Person.name = Eats.name and Person.name = Eats.pizza} Eats;")
 
