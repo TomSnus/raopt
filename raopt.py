@@ -50,7 +50,7 @@ def rule_push_down_selections(ra, dd):
         if all(isinstance(x, AttrRef) for x in item.inputs):
             join_cond.append(item)
             valExpr.remove(item)
-    #No selections to push down
+    # No selections to push down
     if len(valExpr) == 0 and len(join_cond) < 2:
         return ra
     rel = None
@@ -89,6 +89,7 @@ def rule_push_down_selections(ra, dd):
     else:
         return joined_relations
 
+
 def rule_merge_selections(ra):
     del parts[:]
     parts.append(ra)
@@ -101,7 +102,7 @@ def rule_merge_selections(ra):
     join_cond = []
     if len(valExpr) < 2:
         return ra
-    #check if pushed cross conditions (those can't be merged)
+    # check if pushed cross conditions (those can't be merged)
     for item in valExpr[:]:
         if all(isinstance(x, AttrRef) for x in item.inputs):
             join_cond.append(item)
@@ -115,7 +116,7 @@ def rule_merge_selections(ra):
         relations.remove(table)
     cond = valExpr[0]
     for i in range(1, len(valExpr)):
-        cond = ValExprBinaryOp(cond, sym.AND ,valExpr[1])
+        cond = ValExprBinaryOp(cond, sym.AND, valExpr[1])
     select = Select(cond, table)
     relations.append(select)
     joined_relations = create_connection(relations)
@@ -124,12 +125,14 @@ def rule_merge_selections(ra):
         return project[0]
     return joined_relations
 
+
 def check_for_pushed_cross_conditions(valExpr, join_cond, select):
-    if valExpr == join_cond: #only cross conditions
+    if valExpr == join_cond:  # only cross conditions
         for item in select:
             if all(isinstance(x, Cross) for x in item.inputs):
                 return True
             return False
+
 
 def rule_introduce_joins(ra):
     del parts[:]
@@ -150,29 +153,34 @@ def rule_introduce_joins(ra):
         return ra
     elif len(cross) > 1:
         join = create_joine(valExpr[::-1], relations)
-    else: join = create_join(valExpr[0], tables)
+    else:
+        join = create_join(valExpr[0], tables)
     if len(project) > 0:
         project[0].inputs[0] = join
         return project[0]
     return join
 
+
 def create_join(cond, tables):
-  if len(tables) == 2:
-      return Join(tables[0], cond, tables[1])
+    if len(tables) == 2:
+        return Join(tables[0], cond, tables[1])
+
 
 def create_joine(cond, tables):
     table = tables[0]
     for i in range(0, len(cond)):
-        for j in range(1, len(tables)-1):
+        for j in range(1, len(tables) - 1):
             table = Join(table, cond[i], tables[j])
-            tables[j] = tables[j+1]
+            tables[j] = tables[j + 1]
     return table
+
 
 def create_connection(relations):
     joined_relations = relations[0]
-    for i in range (1, len(relations)):
+    for i in range(1, len(relations)):
         joined_relations = Cross(joined_relations, relations[i])
     return joined_relations
+
 
 def create_cross(dd, join_cond, rels):
     joined_relations = rels[0]
@@ -248,7 +256,8 @@ def extract_cross(rel, valExpr):
         relation = [elm for elm in rel if isinstance(elm, Cross)]
         if isinstance(relation[0].inputs[0], Select):
             relation_x1 = relation[0].inputs[0].inputs[0]
-        else: relation_x1 = relation[0].inputs[0]
+        else:
+            relation_x1 = relation[0].inputs[0]
         select = Select(valExpr[1], Select(valExpr[2], relation_x1))
         relation_x2 = relation[0].inputs[1]
         relation[0] = Cross(select, relation_x2)
